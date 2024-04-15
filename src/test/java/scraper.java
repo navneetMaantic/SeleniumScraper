@@ -21,6 +21,7 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -34,10 +35,12 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class scraper {
 
-	private static String URL = "https://www.nseindia.com/market-data/bonds-traded-in-capital-market";
+	private static String NSEURL = "https://www.nseindia.com/market-data/bonds-traded-in-capital-market";
+	private static String iciciDirectURL = "https://www.icicidirect.com/fd-and-bonds";
 	private static double DefaultCouponRate = 8;
-	private static String sheetPath = "C:\\Users\\User\\Downloads\\";
-	// main page locators
+	private static int lastColNum = 12;
+	private static String sheetPath = "C:\\Users\\User\\eclipse-workspace\\SeleniumScraper\\scrape_test.xlsx"; //"C:\\Users\\User\\Downloads\\";
+	// main page locators NSE
 	private static By symbol = By.xpath("(//table[@id='liveTCMTable']/tbody/tr/td/a)");
 	private static By symbolCol = By.xpath("(//table[@id='liveTCMTable']/tbody/tr/td/a)[1]");
 	private static By seriesCol = By.xpath("(//table[@id='liveTCMTable']/tbody/tr/td)[2]");
@@ -46,12 +49,18 @@ public class scraper {
 	private static By maturityDateCol = By.xpath("(//table[@id='liveTCMTable']/tbody/tr/td)[12]");
 	private static By noRecordsLbl = By.xpath("(//table[@id='liveTCMTable']/tbody/tr/td[text()='No Records'])");
 	private static By sortCouponRate = By.xpath("//a[@id='liveTCMTablecol3']");
-	// new tab locators
+	private static By notLoadingLbl = By.xpath("(//div[@class='loader-wrp'])[2]");
+	// new tab locators NSE bond
 	private static By siteCantBeReached = By.xpath("//span[text()='This site can’t be reached']");
 	private static By askLbl = By.xpath("//th[contains(text(),'Ask')]/following::td[3]");
 	private static By qtyLbl = By.xpath("//th[contains(text(),'Ask')]/following::td[4]");
 	private static By ISINlbl = By.xpath("//div[@id='bondsAllSecurityTable']/table/tbody/tr/td[3]");
 	private static By issueDescLbl = By.xpath("//div[@id='bondsAllSecurityTable']/table/tbody/tr/td[4]");
+	// ICICI page locators
+	private static By frequencyLbl = By.xpath("//h4[text()='Coupon Frequency ']/following::h5[1]");
+	private static By yieldICICILbl = By.xpath("//h4[text()='Yield ']/following::h5[1]");
+	private static By searchTxt = By.xpath("//input[@id='searchStock']");
+	private static By clickISIN = By.xpath("//span[contains(text(),'INE530B08102')]");
 
 	private static double couponRateValue;
 	private static String strCouponRate;
@@ -65,16 +74,19 @@ public class scraper {
 	private static String IssueDescValue;
 	private static String[] excelData = new String[500];
 	private static int lastRow = 1;
-	private static String finalInterestValue;
+	private static String finalInterestYieldValue;
 	private static String f_timeRemain;
 	private static double timeRemain;
 
+	private static String freqValue;
+	private static String yieldICICIValue;
+
 	static WebDriver driver;
 	static WebDriver driver2;
+	static WebDriver driver3;
+	static ChromeOptions options = new ChromeOptions();
 
 	public static void main(String[] args) throws Exception {
-//		calculateTimeRem2();
-//		calculateFinalRate2();
 		System.out.println("STARTING...");
 		WebDriverManager.chromedriver().setup();
 //		System.setProperty("webdriver.chrome.driver", "C:\\WebDrivers\\chromedriver.exe");
@@ -87,7 +99,7 @@ public class scraper {
 //		proxy.setHttpProxy(proxyAddress + ":" + proxyPort);
 //		proxy.setSslProxy(proxyAddress + ":" + proxyPort);
 
-		ChromeOptions options = new ChromeOptions();
+//		ChromeOptions options = new ChromeOptions();
 //		options.setProxy(proxy);
 		options.addArguments("--incognito");
 		options.addArguments("--disable-infobars");
@@ -100,8 +112,9 @@ public class scraper {
 		options.addArguments("--no-sandbox");
 		options.addArguments("--disable-setuid-sandbox");
 		options.addArguments("--disable-dev-shm-using");
-//		options.addArguments("--headless");
-//		options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
+		options.addArguments("--headless");
+		options.addArguments(
+				"user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
 //		options.addArguments("--disable-ipc-flooding-protection");
 //		options.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
 //		options.setExperimentalOption("useAutomationExtension", false);
@@ -110,7 +123,7 @@ public class scraper {
 		capabilities.setCapability(ChromeOptions.CAPABILITY, options);
 		options.merge(capabilities);
 		driver = new ChromeDriver(options);
-		driver.get(URL);
+		driver.get(NSEURL);
 		Thread.sleep(4000);
 //		String ipAddress = driver.findElement(By.tagName("body")).getText();
 //		System.out.println("Your IP address: " + ipAddress); 
@@ -120,7 +133,15 @@ public class scraper {
 		if (driver.findElements(noRecordsLbl).size() > 0) {
 			System.out.println("NO RECORDS FOUND PAGE");
 			driver.quit();
+		} else if (driver.findElements(notLoadingLbl).size() > 0) {
+			System.out.println("RECORDS NOT LOADING, LOADING WHEEL DISPLAYED");
+			driver.quit();
 		} else {
+			// open ICICI direct site for frequency
+			driver3 = new ChromeDriver(options);
+			driver3.get(iciciDirectURL);
+
+			// NSE BOND site now
 			wait.until(ExpectedConditions.elementToBeClickable(symbol));
 			driver.findElement(sortCouponRate).click();
 			Thread.sleep(2000);
@@ -130,7 +151,7 @@ public class scraper {
 //			WebDriver driver2 = new ChromeDriver(options);
 			for (int i = 1; i <= totalRows; i++) {
 				// check coupon rate > DefaultCouponRate
-				String newURL;
+				String bondNSEURL;
 				// for first set of records
 				if (i == 1) {
 					strCouponRate = driver
@@ -155,15 +176,16 @@ public class scraper {
 									.findElement(By.xpath("(//table[@id='liveTCMTable']/tbody/tr/td)[" + (5) + "]"))
 									.getText().trim();
 							// *******************NEW URL APPENDING USING DRIVER2************************
-							newURL = "https://www.nseindia.com/get-quotes/bonds?symbol=" + symbolValue + "&series="
+							bondNSEURL = "https://www.nseindia.com/get-quotes/bonds?symbol=" + symbolValue + "&series="
 									+ seriesValue + "&maturityDate=" + maturityDateValue;
 //							System.out.println("1:" + newURL);
 							driver2 = new ChromeDriver(options);
-							driver2.get(newURL);
+							driver2.get(bondNSEURL);
 							driver2.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
 							Thread.sleep(5000);
 							getASKandQTY();
 							driver2.close();
+
 						} else {
 							break;
 						}
@@ -197,15 +219,18 @@ public class scraper {
 											"(//table[@id='liveTCMTable']/tbody/tr/td)[" + (5 + increment) + "]"))
 									.getText().trim();
 							// *******************NEW URL APPENDING USING DRIVER2************************
-							newURL = "https://www.nseindia.com/get-quotes/bonds?symbol=" + symbolValue + "&series="
+							bondNSEURL = "https://www.nseindia.com/get-quotes/bonds?symbol=" + symbolValue + "&series="
 									+ seriesValue + "&maturityDate=" + maturityDateValue;
 //							System.out.println(i + ": " + newURL);
 							driver2 = new ChromeDriver(options);
-							driver2.get(newURL);
+							driver2.get(bondNSEURL);
 							driver2.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
 							Thread.sleep(5000);
 							getASKandQTY();
 							driver2.close();
+
+						} else {
+							break;
 						}
 					}
 				}
@@ -219,8 +244,22 @@ public class scraper {
 				e.printStackTrace();
 			}
 			driver.quit();
-			System.out.println("Successfully run");
+			System.out.println("Successfully run, O/P file generated");
 		}
+	}
+
+	public static void checkFrequency(String ISIN) throws Exception {
+		driver3.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
+		driver3.findElement(searchTxt).clear();
+		driver3.findElement(searchTxt).sendKeys(ISIN);
+		driver3.findElement(searchTxt).sendKeys(Keys.ENTER);
+		Thread.sleep(5000);
+		driver3.findElement(By.xpath("//span[contains(text(),'" + ISIN + "')]")).click();
+		Thread.sleep(5000);
+		freqValue = driver3.findElement(frequencyLbl).getText().trim();
+		System.out.println("Freq: " + freqValue);
+		yieldICICIValue = driver3.findElement(yieldICICILbl).getText().trim();
+		System.out.println("YieldICICI: " + yieldICICIValue);
 	}
 
 	public static void calculateFinalRate() {
@@ -238,14 +277,15 @@ public class scraper {
 		System.out.println("Final: " + finalValue);
 		DecimalFormat df = new DecimalFormat("0.00");
 		// Format the double value
-		finalInterestValue = df.format(finalValue);
-		System.out.println("Final: " + finalInterestValue);
+		finalInterestYieldValue = df.format(finalValue);
+		System.out.println("Final yield: " + finalInterestYieldValue);
 	}
+
 	public static void calculateFinalRate2() {
 //		String cleanedString = faceValue.replace(",", "");
 //		String cleanedString2 = askValue.replace(",", "");
-		double f_faceValue = 1000;//Double.parseDouble(cleanedString);
-		double f_askValue = 908.35;//Double.parseDouble(cleanedString2);
+		double f_faceValue = 1000;// Double.parseDouble(cleanedString);
+		double f_askValue = 908.35;// Double.parseDouble(cleanedString2);
 		double out1, out2, out3, finalValue;
 //		calculateTimeRem();
 		out1 = (f_faceValue - f_askValue);
@@ -256,8 +296,8 @@ public class scraper {
 		System.out.println("Final: " + finalValue);
 		DecimalFormat df = new DecimalFormat("0.00");
 		// Format the double value
-		finalInterestValue = df.format(finalValue);
-		System.out.println("Final: " + finalInterestValue);
+		finalInterestYieldValue = df.format(finalValue);
+		System.out.println("Final: " + finalInterestYieldValue);
 	}
 
 	public static String calculateTimeRem() {
@@ -269,13 +309,13 @@ public class scraper {
 		long daysDifference = ChronoUnit.DAYS.between(today, date1);
 		timeRemain = (double) daysDifference;
 		timeRemain = timeRemain / 365;
-		System.out.println("Days: " + timeRemain);
 		DecimalFormat df = new DecimalFormat("0.00");
 		// Format the double value
 		f_timeRemain = df.format(timeRemain);
+		System.out.println("Time: " + f_timeRemain);
 		return f_timeRemain;
 	}
-	
+
 	public static String calculateTimeRem2() {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
 		LocalDate date1 = LocalDate.parse("24-Jan-2028", formatter);
@@ -289,11 +329,11 @@ public class scraper {
 		DecimalFormat df = new DecimalFormat("0.00");
 		// Format the double value
 		f_timeRemain = df.format(timeRemain);
-		System.out.println("Days: " + f_timeRemain);
+		System.out.println("Time: " + f_timeRemain);
 		return f_timeRemain;
 	}
 
-	public static void getASKandQTY() {
+	public static void getASKandQTY() throws Exception {
 		if (driver2.findElements(siteCantBeReached).size() > 0) {
 			System.out.println("NO RECORDS FOUND PAGE");
 			driver2.close();
@@ -310,17 +350,22 @@ public class scraper {
 			excelData[8] = "NA";
 			excelData[9] = "NA";
 			excelData[10] = "NA";
+			excelData[11] = "NA";
+			excelData[12] = "NA";
 			writeExcelData(excelData);
 		} else {
 			askValue = driver2.findElement(askLbl).getText().trim();
-			System.out.println(askValue);
+			System.out.println("Ask: " + askValue);
 			qtyValue = driver2.findElement(qtyLbl).getText().trim();
-			System.out.println(qtyValue);
+			System.out.println("Qty: " + qtyValue);
 			ISINValue = driver2.findElement(ISINlbl).getText().trim();
-			System.out.println(ISINValue);
+			System.out.println("ISIN: " + ISINValue);
 			IssueDescValue = driver2.findElement(issueDescLbl).getText().trim();
-			System.out.println(ISINValue);
+			System.out.println("ISIN desc:" + IssueDescValue);
+
 			if (!askValue.equals("-")) {
+				// check frequency on ICICI direct site
+				checkFrequency(ISINValue);
 				calculateFinalRate();
 			}
 			if (!askValue.equals("")) {
@@ -338,8 +383,12 @@ public class scraper {
 					excelData[3] = "0";
 					excelData[4] = "0";
 					excelData[10] = "0";
+					excelData[11] = "0";
+					excelData[12] = "0";
 				} else {
-					excelData[10] = (finalInterestValue);
+					excelData[10] = freqValue;
+					excelData[11] = yieldICICIValue;
+					excelData[12] = (finalInterestYieldValue);
 				}
 				writeExcelData(excelData);
 			}
@@ -360,7 +409,7 @@ public class scraper {
 			FileInputStream file = new FileInputStream(new File(sheetPath + "\\scrape_test.xlsx")); // "C:\Users\User\Downloads\scrape_test.xlsx"
 			workbook = new XSSFWorkbook(file);
 			XSSFSheet wSheet = workbook.getSheet("Sheet1");
-			int lastColNum = 11;
+//			int lastColNum = 13;
 			XSSFCell cell;
 			XSSFRow row;
 
@@ -377,7 +426,7 @@ public class scraper {
 			Thread.sleep(3000);
 //			row = wSheet.createRow(wSheet.getLastRowNum() + 1);
 			row = wSheet.createRow(lastRow);
-			for (int j = 0; j < lastColNum; j++) {
+			for (int j = 0; j <= lastColNum; j++) {
 				cell = row.createCell(j);
 				cell.setCellValue(symbol[j]);
 			}
