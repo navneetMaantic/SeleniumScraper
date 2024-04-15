@@ -38,7 +38,7 @@ public class scraper {
 	private static String NSEURL = "https://www.nseindia.com/market-data/bonds-traded-in-capital-market";
 	private static String iciciDirectURL = "https://www.icicidirect.com/fd-and-bonds";
 	private static double DefaultCouponRate = 8;
-	private static int lastColNum = 12;
+	private static int lastColNum = 13;
 	private static String sheetPath = System.getProperty("user.dir") + "\\scrape_test.xlsx"; // "C:\\Users\\User\\Downloads\\";
 	private static String sheetOutPath = System.getProperty("user.dir") + "\\scrape_test_" + outFileName() + ".xlsx";
 	// main page locators NSE
@@ -127,6 +127,8 @@ public class scraper {
 		driver = new ChromeDriver(options);
 		driver.get(NSEURL);
 		long startTime = System.nanoTime();
+		long endTime;
+		long elapsedTimeInMillis;
 		Thread.sleep(4000);
 //		String ipAddress = driver.findElement(By.tagName("body")).getText();
 //		System.out.println("Your IP address: " + ipAddress); 
@@ -153,6 +155,9 @@ public class scraper {
 			int increment = 0;
 //			WebDriver driver2 = new ChromeDriver(options);
 			for (int i = 1; i <= totalRows; i++) {
+				endTime = System.nanoTime();
+		        elapsedTimeInMillis = TimeUnit.NANOSECONDS.toMinutes(endTime - startTime);
+		        System.out.println("Time elapsed: " + elapsedTimeInMillis + " mins");
 				// check coupon rate > DefaultCouponRate
 				String bondNSEURL;
 				// for first set of records
@@ -248,8 +253,8 @@ public class scraper {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			long endTime = System.nanoTime();
-	        long elapsedTimeInMillis = TimeUnit.NANOSECONDS.toMinutes(endTime - startTime);
+			endTime = System.nanoTime();
+	        elapsedTimeInMillis = TimeUnit.NANOSECONDS.toMinutes(endTime - startTime);
 	        System.out.println("Time taken to run the script: " + elapsedTimeInMillis + " mins");
 			driver.quit();
 			System.out.println("Successfully run, O/P file generated");
@@ -259,10 +264,11 @@ public class scraper {
 	public static void checkFrequency(String ISIN) throws Exception {
 		driver3.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
 		driver3.findElement(searchTxt).clear();
+		Thread.sleep(2000);
 		driver3.findElement(searchTxt).sendKeys(ISIN);
 		driver3.findElement(searchTxt).sendKeys(Keys.ENTER);
 		Thread.sleep(5000);
-		if (driver3.findElements(By.xpath("//label[@id='norecords']")).size() > 0) {
+		if (driver3.findElements(By.xpath("(//label[@id='norecords'])[2]")).size() > 0) {
 			System.out.println("**************BOND NOT FOUND****************");
 			freqValue = "0";
 			yieldICICIValue = "0";
@@ -277,24 +283,34 @@ public class scraper {
 	}
 
 	public static void calculateFinalRate() {
-		String cleanedString = faceValue.replace(",", "");
-		String cleanedString2 = askValue.replace(",", "");
-		double f_faceValue = Double.parseDouble(cleanedString);
-		double f_askValue = Double.parseDouble(cleanedString2);
 		double out1, out2, out3, finalValue;
 		calculateTimeRem();
-		out1 = (f_faceValue - f_askValue);
+		out1 = (convertToDouble(faceValue) - convertToDouble(askValue));
 		int roundedValue = (int) Math.ceil(timeRemain);
-		out2 = ((couponRateValue * f_faceValue) / 100) * (roundedValue);
+		out2 = ((couponRateValue * convertToDouble(faceValue)) / 100) * (roundedValue);
 		out3 = (out1 + out2) / (timeRemain);
-		finalValue = (out3 / f_askValue) * 100;
+		finalValue = (out3 / convertToDouble(askValue)) * 100;
 		System.out.println("Final: " + finalValue);
-		DecimalFormat df = new DecimalFormat("0.00");
-		// Format the double value
-		finalInterestYieldValue = df.format(finalValue);
+		finalInterestYieldValue = convertToStringAndTwoDecimal(finalValue);
 		System.out.println("Final yield: " + finalInterestYieldValue);
 	}
 
+	public static double convertToDouble(String strValue) {
+		String cleanedString = strValue.replace(",", "");
+		double doubleValue = Double.parseDouble(cleanedString);
+		return doubleValue;
+	}
+	public static double convertToDouble2(String strValue) {
+		double doubleValue = Double.parseDouble(strValue);
+		return doubleValue;
+	}
+	
+	public static String convertToStringAndTwoDecimal(double dbValue) {
+		DecimalFormat df = new DecimalFormat("0.00");
+		String strValue = df.format(dbValue);
+		return strValue;
+	}
+	
 	public static void calculateFinalRate2() {
 //		String cleanedString = faceValue.replace(",", "");
 //		String cleanedString2 = askValue.replace(",", "");
@@ -323,10 +339,8 @@ public class scraper {
 		long daysDifference = ChronoUnit.DAYS.between(today, date1);
 		timeRemain = (double) daysDifference;
 		timeRemain = timeRemain / 365;
-		DecimalFormat df = new DecimalFormat("0.00");
-		// Format the double value
-		f_timeRemain = df.format(timeRemain);
-		System.out.println("Time: " + f_timeRemain);
+		f_timeRemain = convertToStringAndTwoDecimal(timeRemain);
+		System.out.println("Time period remaining: " + f_timeRemain);
 		return f_timeRemain;
 	}
 
@@ -358,14 +372,15 @@ public class scraper {
 			excelData[2] = faceValue;
 			excelData[3] = "NA";
 			excelData[4] = "NA";
-			excelData[5] = strCouponRate;
-			excelData[6] = calculateTimeRem();
-			excelData[7] = maturityDateValue;
-			excelData[8] = "NA";
+			excelData[5] = "NA";
+			excelData[6] = strCouponRate;
+			excelData[7] = calculateTimeRem();
+			excelData[8] = maturityDateValue;
 			excelData[9] = "NA";
 			excelData[10] = "NA";
 			excelData[11] = "NA";
 			excelData[12] = "NA";
+			excelData[13] = "NA";
 			writeExcelData(excelData);
 		} else {
 			askValue = driver2.findElement(askLbl).getText().trim();
@@ -388,21 +403,24 @@ public class scraper {
 				excelData[2] = faceValue;
 				excelData[3] = askValue;
 				excelData[4] = qtyValue;
-				excelData[5] = strCouponRate;
-				excelData[6] = calculateTimeRem();
-				excelData[7] = maturityDateValue;
-				excelData[8] = ISINValue;
-				excelData[9] = IssueDescValue;
+				excelData[5] = "x";
+				excelData[6] = strCouponRate;
+				excelData[7] = calculateTimeRem();
+				excelData[8] = maturityDateValue;
+				excelData[9] = ISINValue;
+				excelData[10] = IssueDescValue;
 				if (askValue.equals("-")) {
 					excelData[3] = "0";
 					excelData[4] = "0";
-					excelData[10] = "0";
+					excelData[5] = "0";
 					excelData[11] = "0";
 					excelData[12] = "0";
+					excelData[13] = "0";
 				} else {
-					excelData[10] = freqValue;
-					excelData[11] = yieldICICIValue;
-					excelData[12] = (finalInterestYieldValue);
+					excelData[5] = convertToStringAndTwoDecimal(convertToDouble(askValue)*convertToDouble(qtyValue));
+					excelData[11] = freqValue;
+					excelData[12] = yieldICICIValue;
+					excelData[13] = (finalInterestYieldValue);
 				}
 				writeExcelData(excelData);
 			}
