@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.time.Duration;
 import java.time.LocalDate;
 
@@ -39,7 +41,7 @@ public class scraper {
 	private static String iciciDirectURL = "https://www.icicidirect.com/fd-and-bonds";
 	private static double DefaultCouponRate = 8;
 	private static int lastColNum = 12;
-	private static String sheetPath = "C:\\Users\\User\\eclipse-workspace\\SeleniumScraper\\scrape_test.xlsx"; //"C:\\Users\\User\\Downloads\\";
+	private static String sheetPath = System.getProperty("user.dir") + "\\scrape_test.xlsx"; // "C:\\Users\\User\\Downloads\\";
 	// main page locators NSE
 	private static By symbol = By.xpath("(//table[@id='liveTCMTable']/tbody/tr/td/a)");
 	private static By symbolCol = By.xpath("(//table[@id='liveTCMTable']/tbody/tr/td/a)[1]");
@@ -87,6 +89,7 @@ public class scraper {
 	static ChromeOptions options = new ChromeOptions();
 
 	public static void main(String[] args) throws Exception {
+		Logger.getLogger("org.openqa.selenium").setLevel(Level.OFF);
 		System.out.println("STARTING...");
 		WebDriverManager.chromedriver().setup();
 //		System.setProperty("webdriver.chrome.driver", "C:\\WebDrivers\\chromedriver.exe");
@@ -236,8 +239,8 @@ public class scraper {
 				}
 			}
 			// copy files
-			File sourceExcel = new File(sheetPath + "\\scrape_test.xlsx");
-			File dstExcel = new File(sheetPath + "\\scrape_test" + outFileName() + ".xlsx");
+			File sourceExcel = new File(sheetPath);
+			File dstExcel = new File(outFileName() + sheetPath);
 			try {
 				FileUtils.copyFile(sourceExcel, dstExcel);
 			} catch (IOException e) {
@@ -406,7 +409,7 @@ public class scraper {
 
 		XSSFWorkbook workbook = null;
 		try {
-			FileInputStream file = new FileInputStream(new File(sheetPath + "\\scrape_test.xlsx")); // "C:\Users\User\Downloads\scrape_test.xlsx"
+			FileInputStream file = new FileInputStream(new File(sheetPath)); // "C:\Users\User\Downloads\scrape_test.xlsx"
 			workbook = new XSSFWorkbook(file);
 			XSSFSheet wSheet = workbook.getSheet("Sheet1");
 //			int lastColNum = 13;
@@ -437,7 +440,7 @@ public class scraper {
 			e.printStackTrace();
 		}
 		try {
-			FileOutputStream out = new FileOutputStream(new File(sheetPath + "\\scrape_test.xlsx"));
+			FileOutputStream out = new FileOutputStream(new File(sheetPath));
 			workbook.write(out);
 			workbook.close();
 			out.close();
