@@ -26,6 +26,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -107,7 +108,7 @@ public class scraper {
 		options.addArguments("--incognito");
 		options.addArguments("--disable-infobars");
 		options.addArguments("--window-size=1366,768");
-		options.addArguments("--start-maximized");		
+		options.addArguments("--start-maximized");
 		options.addArguments("--disable-notifications");
 		options.addArguments("--disable-extensions");
 		options.addArguments("--disable-dev-shm-usage");
@@ -116,7 +117,7 @@ public class scraper {
 		options.addArguments("--no-sandbox");
 		options.addArguments("--disable-setuid-sandbox");
 		options.addArguments("--disable-dev-shm-using");
-		options.addArguments("--disable-blink-features=AutomationControlled");//***************EUREKA**************
+		options.addArguments("--disable-blink-features=AutomationControlled");// ***************EUREKA**************
 		options.addArguments("--headless");
 		options.addArguments(
 				"user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
@@ -194,10 +195,11 @@ public class scraper {
 							System.out.println(symbolValue + "__" + seriesValue);
 							driver2 = new ChromeDriver(options);
 							driver2.get(bondNSEURL);
-							Thread.sleep(5000);
+							Thread.sleep(3000);
 							getASKandQTY();
 							driver2.close();
-
+							i += 94;
+							increment += 12 * 94;
 						} else {
 							break;
 						}
@@ -238,7 +240,7 @@ public class scraper {
 							System.out.println(symbolValue + "__" + seriesValue);
 							driver2 = new ChromeDriver(options);
 							driver2.get(bondNSEURL);
-							Thread.sleep(5000);
+							Thread.sleep(3000);
 							getASKandQTY();
 							driver2.close();
 
@@ -272,8 +274,11 @@ public class scraper {
 		Thread.sleep(1000);
 		driver3.findElement(searchTxt).sendKeys(ISIN);
 		driver3.findElement(searchTxt).sendKeys(Keys.ENTER);
-		Thread.sleep(8000);
-		if (driver3.findElements(By.xpath("(//label[@id='norecords'])")).size() > 0) {
+		Thread.sleep(3000);
+		if (driver3.findElements(By.xpath("//label[not(@style='display:none')][text()='No records found']")).size() > 0
+				&& driver3.findElements(By.xpath("//label[not(@style='display: none;')][text()='No records found']"))
+						.size() > 0
+				&& driver3.findElements(By.xpath("//label[(@style)][text()='No records found']")).size() > 0) {
 			System.out.println("**************BOND NOT FOUND****************");
 			freqValue = "0";
 			yieldICICIValue = "0";
@@ -297,7 +302,7 @@ public class scraper {
 		// for calculating SI & final yield PA
 		int time;
 		double rate;
-		if (freqValue.equalsIgnoreCase("Yearly")) {
+		if (freqValue.equalsIgnoreCase("Yearly") || freqValue.equalsIgnoreCase("Annual")) {
 			time = (int) Math.ceil(timeRemain * 1);
 			rate = couponRateValue / 1;
 			calculateFinalYieldPA(time, rate);
@@ -321,7 +326,7 @@ public class scraper {
 		finalInterestYieldValue = convertToStringAndTwoDecimal(finalValue);
 		System.out.println("Final yield: " + finalInterestYieldValue);
 	}
-	
+
 	public static void calculateFinalYieldPA(int time, double rate) {
 		double SI;
 		double yieldOnInvest;
@@ -363,7 +368,6 @@ public class scraper {
 		System.out.println("Time period remaining: " + f_timeRemain);
 		return f_timeRemain;
 	}
-
 
 	public static void getASKandQTY() throws Exception {
 		if (driver2.findElements(siteCantBeReached).size() > 0) {
