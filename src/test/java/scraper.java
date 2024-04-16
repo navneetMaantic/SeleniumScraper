@@ -198,8 +198,7 @@ public class scraper {
 							Thread.sleep(3000);
 							getASKandQTY();
 							driver2.close();
-							i += 94;
-							increment += 12 * 94;
+
 						} else {
 							break;
 						}
