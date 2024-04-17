@@ -25,6 +25,8 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -197,7 +199,7 @@ public class scraper {
 							driver2.get(bondNSEURL);
 							Thread.sleep(3000);
 							getASKandQTY();
-							driver2.close();
+							driver2.quit();
 
 						} else {
 							break;
@@ -241,7 +243,7 @@ public class scraper {
 							driver2.get(bondNSEURL);
 							Thread.sleep(3000);
 							getASKandQTY();
-							driver2.close();
+							driver2.quit();
 
 						} else {
 							break;
@@ -273,7 +275,7 @@ public class scraper {
 		Thread.sleep(1000);
 		driver3.findElement(searchTxt).sendKeys(ISIN);
 		driver3.findElement(searchTxt).sendKeys(Keys.ENTER);
-		Thread.sleep(3000);
+		Thread.sleep(2000);
 		if (driver3.findElements(By.xpath("//label[not(@style='display:none')][text()='No records found']")).size() > 0
 				&& driver3.findElements(By.xpath("//label[not(@style='display: none;')][text()='No records found']"))
 						.size() > 0
@@ -282,13 +284,20 @@ public class scraper {
 			freqValue = "0";
 			yieldICICIValue = "0";
 		} else {
-			wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[contains(text(),'" + ISIN + "')]")));
-			driver3.findElement(By.xpath("//span[contains(text(),'" + ISIN + "')]")).click();
-			Thread.sleep(5000);
-			freqValue = driver3.findElement(frequencyLbl).getText().trim();
-			System.out.println("Freq: " + freqValue);
-			yieldICICIValue = driver3.findElement(yieldICICILbl).getText().trim();
-			System.out.println("YieldICICI: " + yieldICICIValue);
+			try {
+				wait.until(
+						ExpectedConditions.elementToBeClickable(By.xpath("//span[contains(text(),'" + ISIN + "')]")));
+				driver3.findElement(By.xpath("//span[contains(text(),'" + ISIN + "')]")).click();
+				Thread.sleep(3000);
+				freqValue = driver3.findElement(frequencyLbl).getText().trim();
+				System.out.println("Freq: " + freqValue);
+				yieldICICIValue = driver3.findElement(yieldICICILbl).getText().trim();
+				System.out.println("YieldICICI: " + yieldICICIValue);
+			} catch (TimeoutException e) {
+				System.out.println("Timeout exception occurred: " + e.getMessage());
+			} catch (NoSuchElementException e) {
+				System.out.println("Element not found: " + e.getMessage());
+			}
 		}
 	}
 
@@ -466,7 +475,6 @@ public class scraper {
 					}
 				}
 			}
-			Thread.sleep(3000);
 //			row = wSheet.createRow(wSheet.getLastRowNum() + 1);
 			row = wSheet.createRow(lastRow);
 			for (int j = 0; j <= lastColNum; j++) {
