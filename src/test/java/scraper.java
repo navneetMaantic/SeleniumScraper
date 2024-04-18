@@ -120,9 +120,9 @@ public class scraper {
 		options.addArguments("--disable-setuid-sandbox");
 		options.addArguments("--disable-dev-shm-using");
 		options.addArguments("--disable-blink-features=AutomationControlled");// ***************EUREKA**************
-//		options.addArguments("--headless");
-//		options.addArguments(
-//				"user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
+		options.addArguments("--headless");
+		options.addArguments(
+				"user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
 //		options.addArguments("--disable-ipc-flooding-protection");
 //		options.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
 		options.setExperimentalOption("useAutomationExtension", false);
