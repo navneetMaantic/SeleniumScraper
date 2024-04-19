@@ -6,6 +6,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -380,7 +381,7 @@ public class scraper {
 	}
 
 	public static String calculateTimeRem() {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy", Locale.ENGLISH);
 		LocalDate date1 = LocalDate.parse(maturityDateValue, formatter);
 		// Get today's date
 		LocalDate today = LocalDate.now();
