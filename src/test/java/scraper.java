@@ -85,8 +85,8 @@ public class scraper {
 	static WebDriver driver;
 	static WebDriver driver2;
 	static WebDriver driver3;
-//	static ChromeOptions options = new ChromeOptions();
-	static EdgeOptions options = new EdgeOptions();
+	static ChromeOptions options = new ChromeOptions();
+//	static EdgeOptions options = new EdgeOptions();
 
 	public static void main(String[] args) throws Exception {
 		try {
@@ -128,7 +128,7 @@ public class scraper {
 			DesiredCapabilities capabilities = new DesiredCapabilities();
 			capabilities.setCapability(ChromeOptions.CAPABILITY, options);
 			options.merge(capabilities);
-			driver = new EdgeDriver(options);
+			driver = new ChromeDriver(options);
 			driver.get(NSEURL);
 			long startTime = System.nanoTime();
 			long endTime;
@@ -147,7 +147,7 @@ public class scraper {
 				driver.quit();
 			} else {
 				// open ICICI direct site for frequency
-				driver3 = new EdgeDriver(options);
+				driver3 = new ChromeDriver(options);
 				driver3.get(iciciDirectURL);
 
 				// NSE BOND site now
@@ -195,7 +195,7 @@ public class scraper {
 								bondNSEURL = "https://www.nseindia.com/get-quotes/bonds?symbol=" + symbolValue
 										+ "&series=" + seriesValue + "&maturityDate=" + maturityDateValue;
 								System.out.println(symbolValue + "__" + seriesValue);
-								driver2 = new EdgeDriver(options);
+								driver2 = new ChromeDriver(options);
 								driver2.get(bondNSEURL);
 								Thread.sleep(3000);
 								getASKandQTY();
@@ -240,7 +240,7 @@ public class scraper {
 								bondNSEURL = "https://www.nseindia.com/get-quotes/bonds?symbol=" + symbolValue
 										+ "&series=" + seriesValue + "&maturityDate=" + maturityDateValue;
 								System.out.println(symbolValue + "__" + seriesValue);
-								driver2 = new EdgeDriver(options);
+								driver2 = new ChromeDriver(options);
 								driver2.get(bondNSEURL);
 								Thread.sleep(3000);
 								getASKandQTY();
@@ -414,7 +414,6 @@ public class scraper {
 			excelData[11] = "NA";
 			excelData[12] = "NA";
 			excelData[13] = "NA";
-//			excelData[14] = "NA";
 			System.out.println("BEEP BEEP");
 			writeExcelData(excelData);
 		} else {
@@ -431,37 +430,55 @@ public class scraper {
 				// check frequency on ICICI direct site
 				checkFrequency(ISINValue);
 				calculateFinalRate();
-			}
-			if (!askValue.equals("")) {
 				excelData[0] = symbolValue;
 				excelData[1] = seriesValue;
 				excelData[2] = faceValue;
 				excelData[3] = askValue;
 				excelData[4] = qtyValue;
-				excelData[5] = "x";
+				
 				excelData[6] = strCouponRate;
 				excelData[7] = f_timeRemain;
 				excelData[8] = maturityDateValue;
 				excelData[9] = ISINValue;
 				excelData[10] = IssueDescValue;
-				if (askValue.equals("-")) {
-					excelData[3] = "0";
-					excelData[4] = "0";
-					excelData[5] = "0";
-					excelData[11] = "0";
-					excelData[12] = "0";
-					excelData[13] = "0";
-//					excelData[14] = "0";
-				} else {
-					excelData[5] = convertToStringAndTwoDecimal(
-							convertCommaToDouble(askValue) * convertCommaToDouble(qtyValue));
-					excelData[11] = freqValue;
-					excelData[12] = netGainValue;
-//					excelData[13] = (finalInterestYieldValue);
-					excelData[13] = (finalYieldPerAnnumValue);
-				}
+				excelData[5] = convertToStringAndTwoDecimal(
+						convertCommaToDouble(askValue) * convertCommaToDouble(qtyValue));
+				excelData[11] = freqValue;
+				excelData[12] = netGainValue;
+//				excelData[13] = (finalInterestYieldValue);
+				excelData[13] = (finalYieldPerAnnumValue);
 				writeExcelData(excelData);
 			}
+//			if (!askValue.equals("")) {
+//				excelData[0] = symbolValue;
+//				excelData[1] = seriesValue;
+//				excelData[2] = faceValue;
+//				excelData[3] = askValue;
+//				excelData[4] = qtyValue;
+//				excelData[5] = "x";
+//				excelData[6] = strCouponRate;
+//				excelData[7] = f_timeRemain;
+//				excelData[8] = maturityDateValue;
+//				excelData[9] = ISINValue;
+//				excelData[10] = IssueDescValue;
+//				if (askValue.equals("-")) {
+//					excelData[3] = "0";
+//					excelData[4] = "0";
+//					excelData[5] = "0";
+//					excelData[11] = "0";
+//					excelData[12] = "0";
+//					excelData[13] = "0";
+////					excelData[14] = "0";
+//				} else {
+//					excelData[5] = convertToStringAndTwoDecimal(
+//							convertCommaToDouble(askValue) * convertCommaToDouble(qtyValue));
+//					excelData[11] = freqValue;
+//					excelData[12] = netGainValue;
+////					excelData[13] = (finalInterestYieldValue);
+//					excelData[13] = (finalYieldPerAnnumValue);
+//				}
+//				writeExcelData(excelData);
+//			}
 		}
 	}
 
