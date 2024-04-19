@@ -426,7 +426,7 @@ public class scraper {
 			IssueDescValue = driver2.findElement(issueDescLbl).getText().trim();
 			System.out.println("ISIN desc:" + IssueDescValue);
 
-			if (!askValue.equals("-")) {
+			if (!askValue.equals("-") && (!askValue.equals(""))) {
 				// check frequency on ICICI direct site
 				checkFrequency(ISINValue);
 				calculateFinalRate();
