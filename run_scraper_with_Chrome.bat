@@ -1,2 +1,2 @@
-java -jar "scraper.jar"
+java -jar "scraperChrome.jar"
 pause

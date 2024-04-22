@@ -6,6 +6,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.time.Duration;
@@ -29,7 +30,9 @@ import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
 import io.github.bonigarcia.wdm.WebDriverManager;
+//import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class scraper {
 
@@ -85,57 +88,44 @@ public class scraper {
 	static WebDriver driver;
 	static WebDriver driver2;
 	static WebDriver driver3;
-//	static ChromeOptions options = new ChromeOptions();
-	static EdgeOptions options = new EdgeOptions();
+	static ChromeOptions options = new ChromeOptions();
+//	static EdgeOptions options = new EdgeOptions();
 
 	public static void main(String[] args) throws Exception {
 		try {
 			System.out.println("STARTING...");
-//		WebDriverManager.chromedriver().setup();
-		WebDriverManager.edgedriver().setup();
+			WebDriverManager.chromedriver().setup();
+//			WebDriverManager.edgedriver().setup();
 //			System.setProperty("webdriver.chrome.driver", "C:\\WebDrivers\\chromedriver.exe");
-//		// Set the proxy configuration
-//		String proxyAddress = "52.67.10.183";
-//		int proxyPort = 80;
-//
-//		// Create a Proxy object and set the HTTP and SSL proxies
-//		Proxy proxy = new Proxy();
-//		proxy.setHttpProxy(proxyAddress + ":" + proxyPort);
-//		proxy.setSslProxy(proxyAddress + ":" + proxyPort);
 
-//		ChromeOptions options = new ChromeOptions();
-//		options.setProxy(proxy);
 			options.addArguments("--incognito");
 			options.addArguments("--disable-infobars");
 			options.addArguments("--window-size=1366,768");
 			options.addArguments("--start-maximized");
 			options.addArguments("--disable-notifications");
 			options.addArguments("--disable-extensions");
-			options.addArguments("--disable-dev-shm-usage");
-			options.addArguments("--disable-impl-side-painting");
-			options.addArguments("--disable-gpu");
-			options.addArguments("--no-sandbox");
-			options.addArguments("--disable-setuid-sandbox");
-			options.addArguments("--disable-dev-shm-using");
+//			options.addArguments("--disable-dev-shm-usage");
+//			options.addArguments("--disable-impl-side-painting");
+//			options.addArguments("--disable-gpu");
+//			options.addArguments("--no-sandbox");
+//			options.addArguments("--disable-setuid-sandbox");
+//			options.addArguments("--disable-dev-shm-using");
 			options.addArguments("--disable-blink-features=AutomationControlled");// ***************EUREKA**************
 			options.addArguments("--headless");
 			options.addArguments(
 					"user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
-//		options.addArguments("--disable-ipc-flooding-protection");
-//		options.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
+			options.addArguments("--disable-ipc-flooding-protection");
+			options.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
 			options.setExperimentalOption("useAutomationExtension", false);
-//		options.addArguments("--user-agent=navneet");
 			DesiredCapabilities capabilities = new DesiredCapabilities();
 			capabilities.setCapability(ChromeOptions.CAPABILITY, options);
 			options.merge(capabilities);
-			driver = new EdgeDriver(options);
+			driver = new ChromeDriver(options);
 			driver.get(NSEURL);
 			long startTime = System.nanoTime();
 			long endTime;
 			long elapsedTimeInMillis;
 			Thread.sleep(4000);
-//		String ipAddress = driver.findElement(By.tagName("body")).getText();
-//		System.out.println("Your IP address: " + ipAddress); 
 
 			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
@@ -146,9 +136,6 @@ public class scraper {
 				System.out.println("RECORDS NOT LOADING, LOADING WHEEL DISPLAYED");
 				driver.quit();
 			} else {
-				// open ICICI direct site for frequency
-				driver3 = new EdgeDriver(options);
-				driver3.get(iciciDirectURL);
 
 				// NSE BOND site now
 				wait.until(ExpectedConditions.elementToBeClickable(symbol));
@@ -157,7 +144,10 @@ public class scraper {
 				driver.findElement(sortCouponRate).click();
 				int totalRows = driver.findElements(symbol).size();
 				int increment = 0;
-//			WebDriver driver2 = new ChromeDriver(options);
+				// open ICICI direct site for frequency
+				driver3 = new ChromeDriver(options);
+				driver3.get(iciciDirectURL);
+
 				for (int i = 1; i <= totalRows; i++) {
 					endTime = System.nanoTime();
 					elapsedTimeInMillis = TimeUnit.NANOSECONDS.toMinutes(endTime - startTime);
@@ -195,15 +185,15 @@ public class scraper {
 								bondNSEURL = "https://www.nseindia.com/get-quotes/bonds?symbol=" + symbolValue
 										+ "&series=" + seriesValue + "&maturityDate=" + maturityDateValue;
 								System.out.println(symbolValue + "__" + seriesValue);
-								driver2 = new EdgeDriver(options);
+								driver2 = new ChromeDriver(options);
 								driver2.get(bondNSEURL);
 								Thread.sleep(3000);
 								getASKandQTY();
 								driver2.quit();
-
-							} else {
-								break;
 							}
+//							else {
+//								break;
+//							}
 						}
 
 					} // for remaining set of records
@@ -240,12 +230,11 @@ public class scraper {
 								bondNSEURL = "https://www.nseindia.com/get-quotes/bonds?symbol=" + symbolValue
 										+ "&series=" + seriesValue + "&maturityDate=" + maturityDateValue;
 								System.out.println(symbolValue + "__" + seriesValue);
-								driver2 = new EdgeDriver(options);
+								driver2 = new ChromeDriver(options);
 								driver2.get(bondNSEURL);
 								Thread.sleep(3000);
 								getASKandQTY();
 								driver2.quit();
-
 							} else {
 								break;
 							}
@@ -273,22 +262,28 @@ public class scraper {
 			// Add any specific exception handling here
 		} finally {
 			// Ensure WebDriver instance is closed
-			if (driver != null || driver2 != null || driver3 != null) {
+			if (driver != null) {
 				driver.quit();
+			}
+			if (driver2 != null) {
 				driver2.quit();
+			}
+			if (driver3 != null) {
 				driver3.quit();
 			}
+
 		}
 	}
 
 	public static void checkFrequency(String ISIN) throws Exception {
-		WebDriverWait wait = new WebDriverWait(driver3, Duration.ofSeconds(20));
+		WebDriverWait wait2 = new WebDriverWait(driver3, Duration.ofSeconds(20));
 		driver3.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(20));
 		driver3.findElement(searchTxt).clear();
 		Thread.sleep(1000);
 		driver3.findElement(searchTxt).sendKeys(ISIN);
 		driver3.findElement(searchTxt).sendKeys(Keys.ENTER);
 		Thread.sleep(3000);
+		freqValue = "0";
 		if (driver3.findElements(By.xpath("//label[not(@style='display:none')][text()='No records found']")).size() > 0
 				&& driver3.findElements(By.xpath("//label[not(@style='display: none;')][text()='No records found']"))
 						.size() > 0
@@ -298,7 +293,7 @@ public class scraper {
 //			yieldICICIValue = "0";
 		} else {
 			try {
-				wait.until(
+				wait2.until(
 						ExpectedConditions.elementToBeClickable(By.xpath("//span[contains(text(),'" + ISIN + "')]")));
 				driver3.findElement(By.xpath("//span[contains(text(),'" + ISIN + "')]")).click();
 				Thread.sleep(4000);
@@ -359,7 +354,8 @@ public class scraper {
 		netGainValue = convertToStringAndTwoDecimal(netGain);
 		yieldOnInvest = netGain / convertCommaToDouble(askValue);
 		System.out.println("yield on invest: " + yieldOnInvest);
-		finalYieldPerAnnumValue = convertToStringAndTwoDecimal((yieldOnInvest / Double.parseDouble(f_timeRemain)) * 100);
+		finalYieldPerAnnumValue = convertToStringAndTwoDecimal(
+				(yieldOnInvest / Double.parseDouble(f_timeRemain)) * 100);
 		System.out.println("Final yield p.a.: " + finalYieldPerAnnumValue);
 	}
 
@@ -397,7 +393,7 @@ public class scraper {
 	public static void getASKandQTY() throws Exception {
 		if (driver2.findElements(siteCantBeReached).size() > 0) {
 			System.out.println("NO RECORDS FOUND PAGE");
-			driver2.close();
+			driver2.quit();
 		} else if (!(driver2.findElements(askLbl).size() > 0)) {
 			System.out.println("FIELDS NOT LOADING");
 			excelData[0] = symbolValue;
@@ -435,7 +431,7 @@ public class scraper {
 				excelData[2] = faceValue;
 				excelData[3] = askValue;
 				excelData[4] = qtyValue;
-				
+
 				excelData[6] = strCouponRate;
 				excelData[7] = f_timeRemain;
 				excelData[8] = maturityDateValue;
