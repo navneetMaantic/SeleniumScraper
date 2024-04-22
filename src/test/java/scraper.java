@@ -85,8 +85,8 @@ public class scraper {
 	static WebDriver driver;
 	static WebDriver driver2;
 	static WebDriver driver3;
-	static ChromeOptions options = new ChromeOptions();
-//	static EdgeOptions options = new EdgeOptions();
+//	static ChromeOptions options = new ChromeOptions();
+	static EdgeOptions options = new EdgeOptions();
 
 	public static void main(String[] args) throws Exception {
 		try {
@@ -128,7 +128,7 @@ public class scraper {
 			DesiredCapabilities capabilities = new DesiredCapabilities();
 			capabilities.setCapability(ChromeOptions.CAPABILITY, options);
 			options.merge(capabilities);
-			driver = new ChromeDriver(options);
+			driver = new EdgeDriver(options);
 			driver.get(NSEURL);
 			long startTime = System.nanoTime();
 			long endTime;
@@ -147,7 +147,7 @@ public class scraper {
 				driver.quit();
 			} else {
 				// open ICICI direct site for frequency
-				driver3 = new ChromeDriver(options);
+				driver3 = new EdgeDriver(options);
 				driver3.get(iciciDirectURL);
 
 				// NSE BOND site now
@@ -195,7 +195,7 @@ public class scraper {
 								bondNSEURL = "https://www.nseindia.com/get-quotes/bonds?symbol=" + symbolValue
 										+ "&series=" + seriesValue + "&maturityDate=" + maturityDateValue;
 								System.out.println(symbolValue + "__" + seriesValue);
-								driver2 = new ChromeDriver(options);
+								driver2 = new EdgeDriver(options);
 								driver2.get(bondNSEURL);
 								Thread.sleep(3000);
 								getASKandQTY();
@@ -240,7 +240,7 @@ public class scraper {
 								bondNSEURL = "https://www.nseindia.com/get-quotes/bonds?symbol=" + symbolValue
 										+ "&series=" + seriesValue + "&maturityDate=" + maturityDateValue;
 								System.out.println(symbolValue + "__" + seriesValue);
-								driver2 = new ChromeDriver(options);
+								driver2 = new EdgeDriver(options);
 								driver2.get(bondNSEURL);
 								Thread.sleep(3000);
 								getASKandQTY();
